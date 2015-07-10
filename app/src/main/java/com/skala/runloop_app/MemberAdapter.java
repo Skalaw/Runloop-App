@@ -1,9 +1,13 @@
 package com.skala.runloop_app;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
+import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,10 +27,12 @@ public class MemberAdapter extends BaseAdapter {
     private LayoutInflater mLayoutInflater;
 
     private ArrayList<MemberModel> mMemberList;
+    private Resources mResources;
 
     public MemberAdapter(Context context, ArrayList<MemberModel> memberList) {
         mLayoutInflater = LayoutInflater.from(context);
         mMemberList = memberList;
+        mResources = context.getResources();
     }
 
     @Override
@@ -70,10 +76,12 @@ public class MemberAdapter extends BaseAdapter {
     }
 
     private void downloadImage(final MemberModel memberModel, final ViewHolder holder, final int position) {
-        new AsyncTask<Void, Void, Bitmap>() {
+        holder.photo.setImageResource(R.drawable.ic_image_grey_600_24dp); // mockup
+
+        new AsyncTask<Void, Void, Drawable>() {
 
             @Override
-            protected Bitmap doInBackground(Void... params) {
+            protected Drawable doInBackground(Void... params) {
                 String stringURL = memberModel.getImageURL();
 
                 Bitmap bitmap = null;
@@ -93,13 +101,27 @@ public class MemberAdapter extends BaseAdapter {
                     e.printStackTrace();
                 }
 
-                return bitmap;
+                if (bitmap == null) {
+                    return null;
+                }
+
+                int sizeAvatar = (int) mResources.getDimension(R.dimen.list_size_avatar);
+                bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getWidth()); // cut top image
+
+                if (sizeAvatar < bitmap.getWidth()) { // we don't want resize up bitmap
+                    bitmap = Bitmap.createScaledBitmap(bitmap, sizeAvatar, sizeAvatar, true); // resize to small bitmap
+                }
+
+                RoundedBitmapDrawable drawable = RoundedBitmapDrawableFactory.create(mResources, bitmap);
+                drawable.setCornerRadius(Math.max(bitmap.getWidth(), bitmap.getHeight()) / 2.0f);
+
+                return drawable;
             }
 
             @Override
-            protected void onPostExecute(Bitmap bitmap) {
-                if (holder.position == position && bitmap != null) { // set bitmap only when bitmap is correct position with holder
-                    holder.photo.setImageBitmap(bitmap);
+            protected void onPostExecute(Drawable drawable) {
+                if (holder.position == position && drawable != null) { // set drawable only when drawable is correct position with holder
+                    holder.photo.setImageDrawable(drawable);
                 }
             }
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
