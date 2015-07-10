@@ -1,5 +1,6 @@
 package com.skala.runloop_app.fragments;
 
+import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -81,8 +82,11 @@ public class MemberListFragment extends Fragment {
 
             @Override
             protected void onPostExecute(ArrayList<MemberModel> memberList) {
-                MemberAdapter memberAdapter = new MemberAdapter(getActivity(), memberList);
-                mListView.setAdapter(memberAdapter);
+                Activity activity = getActivity();
+                if (activity != null) {
+                    MemberAdapter memberAdapter = new MemberAdapter(activity, memberList);
+                    mListView.setAdapter(memberAdapter);
+                }
             }
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
