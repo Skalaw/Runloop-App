@@ -15,6 +15,8 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.skala.runloop_app.utils.MemCache;
+
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -70,50 +72,36 @@ public class MemberAdapter extends BaseAdapter {
         MemberModel memberModel = (MemberModel) getItem(position);
 
         holder.fullname.setText(memberModel.getFullName());
-        downloadImage(memberModel, holder, position);
+        loadAvatar(memberModel, holder, position);
 
         return convertView;
     }
 
-    private void downloadImage(final MemberModel memberModel, final ViewHolder holder, final int position) {
+    private void loadAvatar(MemberModel memberModel, final ViewHolder holder, final int position) {
         holder.photo.setImageResource(R.drawable.ic_image_grey_600_24dp); // mockup
+
+        final String stringURL = memberModel.getImageURL();
 
         new AsyncTask<Void, Void, Drawable>() {
 
             @Override
             protected Drawable doInBackground(Void... params) {
-                String stringURL = memberModel.getImageURL();
-
-                Bitmap bitmap = null;
-                try {
-                    URL url = new URL(stringURL);
-                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                    connection.setDoInput(true);
-                    connection.connect();
-                    int responseCode = connection.getResponseCode();
-                    if (responseCode == HttpURLConnection.HTTP_OK) { // download if ok
-                        InputStream in = connection.getInputStream();
-                        bitmap = BitmapFactory.decodeStream(in);
-                        in.close();
+                Bitmap bitmap = MemCache.get(stringURL);
+                if (bitmap == null) {
+                    bitmap = downloadImage(stringURL);
+                    if (bitmap != null) {
+                        MemCache.put(stringURL, bitmap);
                     }
-
-                } catch (Exception e) {
-                    e.printStackTrace();
                 }
 
-                if (bitmap == null) {
+                if (holder.position != position) { // if ViewHolder disagrees with position - reject operations
                     return null;
                 }
 
-                int sizeAvatar = (int) mResources.getDimension(R.dimen.list_size_avatar);
-                bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getWidth()); // cut top image
-
-                if (sizeAvatar < bitmap.getWidth()) { // we don't want resize up bitmap
-                    bitmap = Bitmap.createScaledBitmap(bitmap, sizeAvatar, sizeAvatar, true); // resize to small bitmap
+                Drawable drawable = null;
+                if (bitmap != null) {
+                    drawable = adjustAvatar(bitmap);
                 }
-
-                RoundedBitmapDrawable drawable = RoundedBitmapDrawableFactory.create(mResources, bitmap);
-                drawable.setCornerRadius(Math.max(bitmap.getWidth(), bitmap.getHeight()) / 2.0f);
 
                 return drawable;
             }
@@ -125,6 +113,43 @@ public class MemberAdapter extends BaseAdapter {
                 }
             }
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    }
+
+    private Bitmap downloadImage(String stringURL) {
+        Bitmap bitmap = null;
+        try {
+            URL url = new URL(stringURL);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setDoInput(true);
+            connection.connect();
+            int responseCode = connection.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) { // download if ok
+                InputStream in = connection.getInputStream();
+                bitmap = BitmapFactory.decodeStream(in);
+                in.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return bitmap;
+    }
+
+    private Drawable adjustAvatar(Bitmap bitmap) {
+        int sizeAvatar = (int) mResources.getDimension(R.dimen.list_size_avatar);
+
+        int bitmapSize = Math.min(bitmap.getWidth(), bitmap.getHeight()); // protection - get smallest size from rectangle (and cut to square)
+        bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmapSize, bitmapSize); // cut image from top or left
+
+        if (sizeAvatar < bitmapSize) { // we don't want resize up bitmap
+            bitmapSize = sizeAvatar;
+            bitmap = Bitmap.createScaledBitmap(bitmap, bitmapSize, bitmapSize, true); // resize to smallest bitmap
+        }
+
+        RoundedBitmapDrawable drawable = RoundedBitmapDrawableFactory.create(mResources, bitmap);
+        drawable.setCornerRadius(bitmapSize / 2);
+
+        return drawable;
     }
 
     static class ViewHolder {
