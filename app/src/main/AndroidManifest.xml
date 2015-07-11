@@ -21,6 +21,10 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name="com.skala.runloop_app.DetailActivity"
+            android:label="@string/app_name"/>
+
     </application>
 
 </manifest>

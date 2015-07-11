@@ -8,6 +8,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.skala.runloop_app.MemberAdapter;
@@ -27,6 +28,11 @@ import java.util.ArrayList;
  */
 public class MemberListFragment extends Fragment {
     private ListView mListView;
+    private MemberAdapter mMemberAdapter;
+
+    public interface Callback {
+        void onItemSelected(MemberModel member);
+    }
 
     public MemberListFragment() {
     }
@@ -35,6 +41,15 @@ public class MemberListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         mListView = (ListView) inflater.inflate(R.layout.fragment_member_list, container, false);
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                MemberModel memberModel = (MemberModel) mMemberAdapter.getItem(position);
+
+                ((Callback) getActivity()).onItemSelected(memberModel);
+            }
+        });
+
         return mListView;
     }
 
@@ -84,8 +99,8 @@ public class MemberListFragment extends Fragment {
             protected void onPostExecute(ArrayList<MemberModel> memberList) {
                 Activity activity = getActivity();
                 if (activity != null) {
-                    MemberAdapter memberAdapter = new MemberAdapter(activity, memberList);
-                    mListView.setAdapter(memberAdapter);
+                    mMemberAdapter = new MemberAdapter(activity, memberList);
+                    mListView.setAdapter(mMemberAdapter);
                 }
             }
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);

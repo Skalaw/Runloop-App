@@ -1,9 +1,12 @@
 package com.skala.runloop_app;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 /**
  * @author Skala
  */
-public class MemberModel {
+public class MemberModel implements Parcelable {
     private String mImageURL;
     private String mFullName;
     private String mPosition;
@@ -14,6 +17,38 @@ public class MemberModel {
         mFullName = fullName;
         mPosition = position;
         mDescription = description;
+    }
+
+    protected MemberModel(Parcel in) {
+        mImageURL = in.readString();
+        mFullName = in.readString();
+        mPosition = in.readString();
+        mDescription = in.readString();
+    }
+
+    public static final Creator<MemberModel> CREATOR = new Creator<MemberModel>() {
+        @Override
+        public MemberModel createFromParcel(Parcel in) {
+            return new MemberModel(in);
+        }
+
+        @Override
+        public MemberModel[] newArray(int size) {
+            return new MemberModel[size];
+        }
+    };
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(mImageURL);
+        dest.writeString(mFullName);
+        dest.writeString(mPosition);
+        dest.writeString(mDescription);
     }
 
     public String getImageURL() {
