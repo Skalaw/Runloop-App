@@ -3,7 +3,6 @@ package com.skala.runloop_app;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
@@ -16,10 +15,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.skala.runloop_app.utils.MemCache;
+import com.skala.runloop_app.utils.NetworkUtils;
 
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 
 /**
@@ -88,7 +85,7 @@ public class MemberAdapter extends BaseAdapter {
             protected Drawable doInBackground(Void... params) {
                 Bitmap bitmap = MemCache.get(stringURL);
                 if (bitmap == null) {
-                    bitmap = downloadImage(stringURL);
+                    bitmap = NetworkUtils.downloadImage(stringURL);
                     if (bitmap != null) {
                         MemCache.put(stringURL, bitmap);
                     }
@@ -113,26 +110,6 @@ public class MemberAdapter extends BaseAdapter {
                 }
             }
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-    }
-
-    private Bitmap downloadImage(String stringURL) {
-        Bitmap bitmap = null;
-        try {
-            URL url = new URL(stringURL);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setDoInput(true);
-            connection.connect();
-            int responseCode = connection.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) { // download if ok
-                InputStream in = connection.getInputStream();
-                bitmap = BitmapFactory.decodeStream(in);
-                in.close();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return bitmap;
     }
 
     private Drawable adjustAvatar(Bitmap bitmap) {

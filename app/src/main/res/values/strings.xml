@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">Runloop-App</string>
-    <string name="member_description_photo">Photo Item</string>
+    <string name="member_description_photo">Photo member</string>
 </resources>
