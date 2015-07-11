@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 
 import com.skala.runloop_app.fragments.DetailFragment;
+import com.skala.runloop_app.models.MemberModel;
 
 /**
  * @author Skala

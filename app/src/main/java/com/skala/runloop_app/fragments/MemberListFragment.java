@@ -12,8 +12,8 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.skala.runloop_app.MemberAdapter;
-import com.skala.runloop_app.MemberModel;
 import com.skala.runloop_app.R;
+import com.skala.runloop_app.models.MemberModel;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -45,7 +45,6 @@ public class MemberListFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 MemberModel memberModel = (MemberModel) mMemberAdapter.getItem(position);
-
                 ((Callback) getActivity()).onItemSelected(memberModel);
             }
         });
@@ -105,5 +104,4 @@ public class MemberListFragment extends Fragment {
             }
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
-
 }

@@ -65,7 +65,7 @@ public class MemCache {
         }
     }
 
-    public static int size() {
+    private static int size() {
         synchronized (mCache) {
             return mCache.size();
         }

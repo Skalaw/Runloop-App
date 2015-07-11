@@ -1,6 +1,5 @@
 package com.skala.runloop_app.fragments;
 
-import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -12,10 +11,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.skala.runloop_app.DetailActivity;
-import com.skala.runloop_app.MemberModel;
 import com.skala.runloop_app.R;
-import com.skala.runloop_app.utils.MemCache;
-import com.skala.runloop_app.utils.NetworkUtils;
+import com.skala.runloop_app.models.MemberModel;
+import com.skala.runloop_app.tasks.ImageLoadPhotoTask;
 
 /**
  * @author Skala
@@ -60,31 +58,7 @@ public class DetailFragment extends Fragment {
         mPositionView.setText(mMemberModel.getPosition());
         mDescriptionView.setText(mMemberModel.getDescription());
 
-        loadPhoto(mMemberModel.getImageURL());
-    }
-
-    private void loadPhoto(final String stringURL) {
-        new AsyncTask<Void, Void, Bitmap>() {
-
-            @Override
-            protected Bitmap doInBackground(Void... params) {
-                Bitmap bitmap = MemCache.get(stringURL);
-                if (bitmap == null) {
-                    bitmap = NetworkUtils.downloadImage(stringURL);
-                    if (bitmap != null) {
-                        MemCache.put(stringURL, bitmap);
-                    }
-                }
-
-                return bitmap;
-            }
-
-            @Override
-            protected void onPostExecute(Bitmap bitmap) {
-                if (mPhotoView != null) {
-                    mPhotoView.setImageBitmap(bitmap);
-                }
-            }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        ImageLoadPhotoTask imageLoadPhotoTask = new ImageLoadPhotoTask(mPhotoView);
+        imageLoadPhotoTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mMemberModel.getImageURL());
     }
 }

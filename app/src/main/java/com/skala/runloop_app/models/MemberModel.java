@@ -1,4 +1,4 @@
-package com.skala.runloop_app;
+package com.skala.runloop_app.models;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -19,7 +19,7 @@ public class MemberModel implements Parcelable {
         mDescription = description;
     }
 
-    protected MemberModel(Parcel in) {
+    private MemberModel(Parcel in) {
         mImageURL = in.readString();
         mFullName = in.readString();
         mPosition = in.readString();
