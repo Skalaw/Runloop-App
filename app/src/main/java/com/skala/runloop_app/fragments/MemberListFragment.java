@@ -22,6 +22,7 @@ import com.skala.runloop_app.models.MemberModel;
 import com.skala.runloop_app.receivers.NetworkChangeReceiver;
 import com.skala.runloop_app.services.DownloadMemberService;
 import com.skala.runloop_app.sql.MembersSQLHelper;
+import com.skala.runloop_app.utils.NetworkUtils;
 import com.skala.runloop_app.utils.Utility;
 
 import java.util.ArrayList;
@@ -74,6 +75,10 @@ public class MemberListFragment extends Fragment {
         super.onResume();
         getActivity().registerReceiver(mReceiver, new IntentFilter(DownloadMemberService.DOWNLOAD_MEMBER));
         getActivity().registerReceiver(mNetworkChangeReceiver, new IntentFilter(NetworkChangeReceiver.INTERNET_IS_CONNECTED));
+
+        if (mMemberAdapter != null && NetworkUtils.isInternetConnected(getActivity())) {
+            mMemberAdapter.notifyDataSetChanged(); // it should worked when we back to activity and example bitmap for avatar is not load
+        }
     }
 
 
@@ -82,6 +87,13 @@ public class MemberListFragment extends Fragment {
         getActivity().unregisterReceiver(mReceiver);
         getActivity().unregisterReceiver(mNetworkChangeReceiver);
         super.onPause();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        releaseProgressDialog(); // we need to catch WindowLeaked
     }
 
     private void startDownloadMember() {
@@ -115,13 +127,6 @@ public class MemberListFragment extends Fragment {
                 releaseProgressDialog();
             }
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-
-        releaseProgressDialog(); // we need to catch WindowLeaked
     }
 
     private void showProgressDialog(int stringID) {
