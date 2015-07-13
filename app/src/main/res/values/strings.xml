@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">Runloop-App</string>
     <string name="member_description_photo">Photo member</string>
+
+    <string name="message_loading_member_load">Members are loading. Please wait</string>
+    <string name="message_loading_member_download">We are downloading Member list. Please wait</string>
+    <string name="message_member_download_error">You can\'t download member list. Please check your internet connection</string>
+
 </resources>
