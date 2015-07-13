@@ -10,3 +10,4 @@ WRITE_EXTERNAL_STORAGE - need to save database Members - it worked in offline mo
 ## Options:
 
 Poziom 2: "Zastosowanie technik optymalizacyjnych dla dużych list pracowników. Trzeba zademonstrować w kodzie możliwość obsłużenia ilości profili pracowników przekraczających 10 000" - available set in DEBUG mode
+Poziom 3: "Przystosowanie bazy danych do obsługi dużej ilości rekordów (> 10 000)" - available set in DEBUG mode

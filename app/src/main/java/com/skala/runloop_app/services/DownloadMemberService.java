@@ -8,7 +8,6 @@ import android.util.Log;
 
 import com.skala.runloop_app.models.MemberModel;
 import com.skala.runloop_app.sql.MembersSQLHelper;
-import com.skala.runloop_app.utils.MemCache;
 import com.skala.runloop_app.utils.NetworkUtils;
 
 import java.util.ArrayList;
@@ -17,7 +16,7 @@ import java.util.ArrayList;
  * @author Skala
  */
 public class DownloadMemberService extends IntentService {
-    private static final String TAG = MemCache.class.getSimpleName();
+    private static final String TAG = DownloadMemberService.class.getSimpleName();
 
     private static final String URL_RUNLOOP_SITE = "http://runloop.pl/";
 

@@ -1,10 +1,10 @@
 package com.skala.runloop_app.sql;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.SQLiteStatement;
 
 import com.skala.runloop_app.BuildConfig;
 import com.skala.runloop_app.models.MemberModel;
@@ -50,22 +50,43 @@ public class MembersSQLHelper extends SQLiteOpenHelper {
 
     }
 
-    public void addMembers(ArrayList<MemberModel> memberModels) {
+    public void addMembers(ArrayList<MemberModel> memberList) {
         SQLiteDatabase database = getWritableDatabase();
 
         database.delete(TABLE_NAME, null, null); // delete old data
 
-        int size = memberModels.size();
-        for (int i = 0; i < size; i++) {
-            MemberModel memberModel = memberModels.get(i);
-
-            ContentValues values = new ContentValues();
-            values.put(COLUMN_NAME_IMAGE_URL, memberModel.getImageURL());
-            values.put(COLUMN_NAME_FULLNAME, memberModel.getFullName());
-            values.put(COLUMN_NAME_POSITION, memberModel.getPosition());
-            values.put(COLUMN_NAME_DESCRIPTION, memberModel.getDescription());
-            database.insert(TABLE_NAME, null, values);
+        if (BuildConfig.DEBUG) {
+            addFakeMembers(memberList); // add more members available only in debug mode
         }
+
+        StringBuilder command;
+        command = new StringBuilder("INSERT INTO ");
+        command.append(TABLE_NAME);
+        command.append(" (");
+        command.append(COLUMN_NAME_IMAGE_URL);
+        command.append(", ");
+        command.append(COLUMN_NAME_FULLNAME);
+        command.append(", ");
+        command.append(COLUMN_NAME_POSITION);
+        command.append(", ");
+        command.append(COLUMN_NAME_DESCRIPTION);
+        command.append(") VALUES (?, ?, ?, ?)");
+
+        SQLiteStatement insStmt = database.compileStatement(command.toString());
+        database.beginTransaction();
+
+        int size = memberList.size();
+        for (int i = 0; i < size; i++) {
+            MemberModel memberModel = memberList.get(i);
+
+            insStmt.bindString(1, memberModel.getImageURL());
+            insStmt.bindString(2, memberModel.getFullName());
+            insStmt.bindString(3, memberModel.getPosition());
+            insStmt.bindString(4, memberModel.getDescription());
+            insStmt.executeInsert();
+        }
+        database.setTransactionSuccessful();
+        database.endTransaction();
 
         database.close();
     }
@@ -73,8 +94,7 @@ public class MembersSQLHelper extends SQLiteOpenHelper {
     public ArrayList<MemberModel> getAllMembers() {
         SQLiteDatabase database = getReadableDatabase();
 
-        Cursor cursor = database.query(TABLE_NAME,
-                ALL_COLUMNS, null, null, null, null, null);
+        Cursor cursor = database.query(TABLE_NAME, ALL_COLUMNS, null, null, null, null, null);
 
         if (cursor.getCount() == 0) {
             cursor.close();
@@ -100,10 +120,6 @@ public class MembersSQLHelper extends SQLiteOpenHelper {
         cursor.close();
         database.close();
 
-        if (BuildConfig.DEBUG) {
-            addFakeMembers(memberList); // add more members available only in debug mode
-        }
-
         return memberList;
     }
 
@@ -114,7 +130,7 @@ public class MembersSQLHelper extends SQLiteOpenHelper {
         }
 
         int count = 0; // count need to change avatars
-        for (int i = 0; i < 12000; i++) { // we need members more than 10.000
+        for (int i = 0; i < 10000; i++) { // we need members more than 10.000
             MemberModel memberModel = new MemberModel(memberList.get(count).getImageURL(), String.valueOf(i), String.valueOf(i), String.valueOf(i)); // we need create new model
             memberList.add(memberModel);
 
