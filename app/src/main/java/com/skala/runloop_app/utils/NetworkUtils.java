@@ -1,7 +1,10 @@
 package com.skala.runloop_app.utils;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 
 import com.skala.runloop_app.models.MemberModel;
 
@@ -41,7 +44,11 @@ public class NetworkUtils {
         return bitmap;
     }
 
-    public static ArrayList<MemberModel> downloadMemberList(String stringUrl) {
+    public static ArrayList<MemberModel> downloadMemberList(Context context, String stringUrl) {
+        if (!isInternetConnected(context)) {
+            return null;
+        }
+
         ArrayList<MemberModel> memberList = null;
         try {
             Document doc = Jsoup.connect(stringUrl).get();
@@ -67,5 +74,11 @@ public class NetworkUtils {
             e.printStackTrace();
         }
         return memberList;
+    }
+
+    public static boolean isInternetConnected(Context context) {
+        ConnectivityManager manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo info = manager.getActiveNetworkInfo();
+        return info != null && info.isConnected();
     }
 }

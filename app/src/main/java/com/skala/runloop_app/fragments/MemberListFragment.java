@@ -19,6 +19,7 @@ import android.widget.Toast;
 import com.skala.runloop_app.MemberAdapter;
 import com.skala.runloop_app.R;
 import com.skala.runloop_app.models.MemberModel;
+import com.skala.runloop_app.receivers.NetworkChangeReceiver;
 import com.skala.runloop_app.services.DownloadMemberService;
 import com.skala.runloop_app.sql.MembersSQLHelper;
 import com.skala.runloop_app.utils.Utility;
@@ -58,9 +59,7 @@ public class MemberListFragment extends Fragment {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         if (savedInstanceState == null) {
-            Intent intent = new Intent(getActivity(), DownloadMemberService.class);
-            getActivity().startService(intent);
-            showProgressDialog(R.string.message_loading_member_download);
+            startDownloadMember();
         } else {
             if (!Utility.isMyServiceRunning(getActivity(), DownloadMemberService.class)) { // if service downloading members - don't load member (wait for Broadcast)
                 loadMembersFromDataBase();
@@ -70,34 +69,25 @@ public class MemberListFragment extends Fragment {
         }
     }
 
-    private BroadcastReceiver mReceiver = new BroadcastReceiver() {
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-
-            if (action.equals(DownloadMemberService.DOWNLOAD_MEMBER)) {
-                releaseProgressDialog(); // release message download
-                loadMembersFromDataBase();
-
-                boolean successfully = intent.getBooleanExtra(DownloadMemberService.KEY_RESULT, false);
-                if (!successfully) {
-                    Toast.makeText(getActivity(), R.string.message_member_download_error, Toast.LENGTH_SHORT).show();
-                }
-            }
-        }
-    };
-
     @Override
     public void onResume() {
         super.onResume();
         getActivity().registerReceiver(mReceiver, new IntentFilter(DownloadMemberService.DOWNLOAD_MEMBER));
+        getActivity().registerReceiver(mNetworkChangeReceiver, new IntentFilter(NetworkChangeReceiver.INTERNET_IS_CONNECTED));
     }
+
 
     @Override
     public void onPause() {
         getActivity().unregisterReceiver(mReceiver);
+        getActivity().unregisterReceiver(mNetworkChangeReceiver);
         super.onPause();
+    }
+
+    private void startDownloadMember() {
+        Intent intent = new Intent(getActivity(), DownloadMemberService.class);
+        getActivity().startService(intent);
+        showProgressDialog(R.string.message_loading_member_download);
     }
 
     private void loadMembersFromDataBase() {
@@ -138,6 +128,7 @@ public class MemberListFragment extends Fragment {
         Context context = getActivity();
         mProgressDialog = new ProgressDialog(context);
         mProgressDialog.setMessage(context.getString(stringID));
+        mProgressDialog.setCancelable(false);
         mProgressDialog.show();
     }
 
@@ -147,4 +138,41 @@ public class MemberListFragment extends Fragment {
             mProgressDialog = null;
         }
     }
+
+    private BroadcastReceiver mReceiver = new BroadcastReceiver() {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+
+            if (action.equals(DownloadMemberService.DOWNLOAD_MEMBER)) {
+                releaseProgressDialog(); // release message download
+                loadMembersFromDataBase();
+
+                boolean successfully = intent.getBooleanExtra(DownloadMemberService.KEY_RESULT, false);
+                if (!successfully) {
+                    Toast.makeText(getActivity(), R.string.message_member_download_error, Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+    };
+
+    private BroadcastReceiver mNetworkChangeReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action.equals(NetworkChangeReceiver.INTERNET_IS_CONNECTED)) {
+                MembersSQLHelper membersSQLHelper = new MembersSQLHelper(context);
+                if (!membersSQLHelper.isMembersExist()) {
+                    if (!Utility.isMyServiceRunning(context, DownloadMemberService.class)) {
+                        startDownloadMember();
+                    }
+                } else {
+                    if (mMemberAdapter != null) {
+                        mMemberAdapter.notifyDataSetChanged();
+                    }
+                }
+            }
+        }
+    };
 }

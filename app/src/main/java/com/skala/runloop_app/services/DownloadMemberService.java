@@ -1,6 +1,7 @@
 package com.skala.runloop_app.services;
 
 import android.app.IntentService;
+import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
@@ -35,9 +36,10 @@ public class DownloadMemberService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        ArrayList<MemberModel> memberList = NetworkUtils.downloadMemberList(URL_RUNLOOP_SITE);
+        Context context = getApplicationContext();
+        ArrayList<MemberModel> memberList = NetworkUtils.downloadMemberList(context, URL_RUNLOOP_SITE);
         if (memberList != null) {
-            MembersSQLHelper membersSQLHelper = new MembersSQLHelper(getApplicationContext());
+            MembersSQLHelper membersSQLHelper = new MembersSQLHelper(context);
             membersSQLHelper.addMembers(memberList);
             Log.d(TAG, "Data download successfully");
         } else {

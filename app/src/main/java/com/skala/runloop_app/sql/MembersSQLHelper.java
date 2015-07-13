@@ -139,4 +139,13 @@ public class MembersSQLHelper extends SQLiteOpenHelper {
         }
     }
 
+    public boolean isMembersExist() {
+        SQLiteDatabase database = getReadableDatabase();
+
+        Cursor cursor = database.query(TABLE_NAME, ALL_COLUMNS, null, null, null, null, null);
+        int size = cursor.getCount();
+        cursor.close();
+
+        return size != 0;
+    }
 }

@@ -30,6 +30,12 @@
             android:name=".services.DownloadMemberService"
             android:exported="false"/>
 
+        <receiver android:name=".receivers.NetworkChangeReceiver" >
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>
