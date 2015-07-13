@@ -1,7 +1,9 @@
 package com.skala.runloop_app.fragments;
 
-import android.app.Activity;
-import android.os.AsyncTask;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -10,17 +12,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.skala.runloop_app.MemberAdapter;
 import com.skala.runloop_app.R;
 import com.skala.runloop_app.models.MemberModel;
+import com.skala.runloop_app.services.DownloadMemberService;
+import com.skala.runloop_app.sql.MembersSQLHelper;
+import com.skala.runloop_app.utils.Utility;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-
-import java.io.IOException;
 import java.util.ArrayList;
 
 /**
@@ -54,54 +54,52 @@ public class MemberListFragment extends Fragment {
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        downloadMemberList();
+        if (savedInstanceState == null) {
+            Intent intent = new Intent(getActivity(), DownloadMemberService.class);
+            getActivity().startService(intent);
+        } else {
+            if (!Utility.isMyServiceRunning(getActivity(), DownloadMemberService.class)) { // if service downloading members - don't load member (wait for Broadcast)
+                loadMembersFromDataBase();
+            }
+        }
     }
 
-    private void downloadMemberList() {
-        new AsyncTask<Void, Void, ArrayList<MemberModel>>() {
-            @Override
-            protected ArrayList<MemberModel> doInBackground(Void... params) {
-                ArrayList<MemberModel> memberList = new ArrayList<>();
-                String stringUrl = "http://runloop.pl/";
+    private BroadcastReceiver mReceiver = new BroadcastReceiver() {
 
-                try {
-                    Document doc = Jsoup.connect(stringUrl).get();
-                    Elements staffListContainer = doc.getElementsByClass("staff-list-container");
-                    Elements members = staffListContainer.get(0).getElementsByClass("figure");
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
 
-                    int sizeMember = members.size();
-                    for (int i = 0; i < sizeMember; i++) {
-                        Element member = members.get(i);
-                        String imageUrl = member.getElementsByClass("figure-image").get(0).select("img").get(0).absUrl("src");
-                        String description = member.getElementsByClass("figure-caption-description").get(0).text();
+            if (action.equals(DownloadMemberService.DOWNLOAD_MEMBER)) {
+                loadMembersFromDataBase();
 
-                        Element title = member.getElementsByClass("figure-caption-title").get(0);
-                        String fullName = title.select("strong").text();
-                        String position = title.select("span").text();
-
-                        /*Log.i("MemberList", i + " - " + imageUrl);
-                        Log.i("MemberList", i + " - " + fullName);
-                        Log.i("MemberList", i + " - " + position);
-                        Log.i("MemberList", i + " - " + description);*/
-
-                        MemberModel memberModel = new MemberModel(imageUrl, fullName, position, description);
-                        memberList.add(memberModel);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                return memberList;
-            }
-
-            @Override
-            protected void onPostExecute(ArrayList<MemberModel> memberList) {
-                Activity activity = getActivity();
-                if (activity != null) {
-                    mMemberAdapter = new MemberAdapter(activity, memberList);
-                    mListView.setAdapter(mMemberAdapter);
+                boolean successfully = intent.getBooleanExtra(DownloadMemberService.KEY_RESULT, false);
+                if (!successfully) {
+                    Toast.makeText(getActivity(), "You can't download member list. Please check your internet connection", Toast.LENGTH_SHORT).show();
                 }
             }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }
+    };
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        getActivity().registerReceiver(mReceiver, new IntentFilter(DownloadMemberService.DOWNLOAD_MEMBER));
+    }
+
+    @Override
+    public void onPause() {
+        getActivity().unregisterReceiver(mReceiver);
+        super.onPause();
+    }
+
+    private void loadMembersFromDataBase() {
+        MembersSQLHelper membersSQLHelper = new MembersSQLHelper(getActivity());
+        ArrayList<MemberModel> memberList = membersSQLHelper.getAllMembers();
+
+        if (memberList != null) {
+            mMemberAdapter = new MemberAdapter(getActivity(), memberList);
+            mListView.setAdapter(mMemberAdapter);
+        }
     }
 }
