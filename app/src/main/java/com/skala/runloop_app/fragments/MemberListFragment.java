@@ -35,6 +35,8 @@ public class MemberListFragment extends Fragment {
     private MemberAdapter mMemberAdapter;
     private ProgressDialog mProgressDialog;
 
+    private int mCurrentPosition = 0;
+
     public interface Callback {
         void onItemSelected(MemberModel member);
     }
@@ -63,6 +65,7 @@ public class MemberListFragment extends Fragment {
             startDownloadMember();
         } else {
             if (!Utility.isMyServiceRunning(getActivity(), DownloadMemberService.class)) { // if service downloading members - don't load member (wait for Broadcast)
+                mCurrentPosition = savedInstanceState.getInt("position_listview", 0);
                 loadMembersFromDataBase();
             } else {
                 showProgressDialog(R.string.message_loading_member_download); // continue to show dialog
@@ -81,6 +84,11 @@ public class MemberListFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putInt("position_listview", mListView.getFirstVisiblePosition());
+        super.onSaveInstanceState(outState);
+    }
 
     @Override
     public void onPause() {
@@ -122,6 +130,9 @@ public class MemberListFragment extends Fragment {
                 if (memberList != null && context != null) {
                     mMemberAdapter = new MemberAdapter(context, memberList);
                     mListView.setAdapter(mMemberAdapter);
+                    if (mCurrentPosition != 0) {
+                        mListView.setSelection(mCurrentPosition);
+                    }
                 }
 
                 releaseProgressDialog();
