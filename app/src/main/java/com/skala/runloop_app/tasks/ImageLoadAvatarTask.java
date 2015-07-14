@@ -11,6 +11,7 @@ import com.skala.runloop_app.MemberViewHolder;
 import com.skala.runloop_app.R;
 import com.skala.runloop_app.utils.MemCache;
 import com.skala.runloop_app.utils.NetworkUtils;
+import com.skala.runloop_app.utils.Utility;
 
 /**
  * @author Skala
@@ -54,6 +55,7 @@ public class ImageLoadAvatarTask extends AsyncTask<String, Void, Drawable> {
     protected void onPostExecute(Drawable drawable) {
         if (mViewHolder != null && mViewHolder.position == mPosition && drawable != null) { // set drawable only when drawable is correct position with holder
             mViewHolder.photo.setImageDrawable(drawable);
+            Utility.animationLoadImage(drawable, 400);
         }
     }
 
