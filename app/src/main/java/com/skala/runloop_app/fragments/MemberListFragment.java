@@ -31,9 +31,15 @@ import java.util.ArrayList;
  * @author Skala
  */
 public class MemberListFragment extends Fragment {
+    private static final String SELECTED_KEY = "selected_position";
+    private static final String POSITION_KEY = "position_listview";
+
     private ListView mListView;
     private MemberAdapter mMemberAdapter;
     private ProgressDialog mProgressDialog;
+
+    private int mCurrentPosition = 0;
+    private int mSelectedPosition = ListView.INVALID_POSITION;
 
     public interface Callback {
         void onItemSelected(MemberModel member);
@@ -51,6 +57,7 @@ public class MemberListFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 MemberModel memberModel = (MemberModel) mMemberAdapter.getItem(position);
                 ((Callback) getActivity()).onItemSelected(memberModel);
+                mSelectedPosition = position;
             }
         });
 
@@ -63,6 +70,10 @@ public class MemberListFragment extends Fragment {
             startDownloadMember();
         } else {
             if (!Utility.isMyServiceRunning(getActivity(), DownloadMemberService.class)) { // if service downloading members - don't load member (wait for Broadcast)
+                if (savedInstanceState.containsKey(SELECTED_KEY)) {
+                    mSelectedPosition = savedInstanceState.getInt(SELECTED_KEY);
+                }
+                mCurrentPosition = savedInstanceState.getInt(POSITION_KEY, 0);
                 loadMembersFromDataBase();
             } else {
                 showProgressDialog(R.string.message_loading_member_download); // continue to show dialog
@@ -81,6 +92,15 @@ public class MemberListFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putInt(POSITION_KEY, mListView.getFirstVisiblePosition());
+        if (mSelectedPosition != ListView.INVALID_POSITION) {
+            outState.putInt(SELECTED_KEY, mSelectedPosition);
+        }
+
+        super.onSaveInstanceState(outState);
+    }
 
     @Override
     public void onPause() {
@@ -122,6 +142,12 @@ public class MemberListFragment extends Fragment {
                 if (memberList != null && context != null) {
                     mMemberAdapter = new MemberAdapter(context, memberList);
                     mListView.setAdapter(mMemberAdapter);
+                    if (mCurrentPosition != 0) {
+                        mListView.setSelection(mCurrentPosition);
+                    }
+                    if(mSelectedPosition != ListView.INVALID_POSITION) {
+                        mListView.setItemChecked(mSelectedPosition, true);
+                    }
                 }
 
                 releaseProgressDialog();
