@@ -15,17 +15,17 @@ import java.util.ArrayList;
  * @author Skala
  */
 public class MembersSQLHelper extends SQLiteOpenHelper {
-    private static final String DATABASE_NAME = "Members.db";
+    public static final String DATABASE_NAME = "Members.db";
     private static final int DATABASE_VERSION = 1;
 
-    private static final String TABLE_NAME = "members";
-    private static final String COLUMN_NAME_ID = "id";
-    private static final String COLUMN_NAME_IMAGE_URL = "image_url";
-    private static final String COLUMN_NAME_FULLNAME = "fullname";
-    private static final String COLUMN_NAME_POSITION = "position";
-    private static final String COLUMN_NAME_DESCRIPTION = "description";
+    public static final String TABLE_NAME = "members";
+    public static final String COLUMN_NAME_ID = "id";
+    public static final String COLUMN_NAME_IMAGE_URL = "image_url";
+    public static final String COLUMN_NAME_FULLNAME = "fullname";
+    public static final String COLUMN_NAME_POSITION = "position";
+    public static final String COLUMN_NAME_DESCRIPTION = "description";
 
-    private String[] ALL_COLUMNS = {COLUMN_NAME_ID, COLUMN_NAME_IMAGE_URL, COLUMN_NAME_FULLNAME,
+    public static final String[] ALL_COLUMNS = {COLUMN_NAME_ID, COLUMN_NAME_IMAGE_URL, COLUMN_NAME_FULLNAME,
             COLUMN_NAME_POSITION, COLUMN_NAME_DESCRIPTION};
 
     private static final String SQL_CREATE_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " ( " +
