@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -19,6 +20,7 @@ import com.skala.runloop_app.R;
 import com.skala.runloop_app.models.MemberModel;
 import com.skala.runloop_app.receivers.NetworkChangeReceiver;
 import com.skala.runloop_app.tasks.ImageLoadPhotoTask;
+import com.skala.runloop_app.utils.FontUtils;
 
 /**
  * @author Skala
@@ -47,6 +49,9 @@ public class DetailFragment extends Fragment {
         mFullNameView = (TextView) rootView.findViewById(R.id.memberFullname);
         mPositionView = (TextView) rootView.findViewById(R.id.memberPosition);
         mDescriptionView = (TextView) rootView.findViewById(R.id.memberDescription);
+
+        Typeface typeface = FontUtils.getTypeface(getActivity().getAssets(), FontUtils.FONT_TYPE_ROBOTO_MEDIUM);
+        mPositionView.setTypeface(typeface);
 
         return rootView;
     }
