@@ -38,7 +38,9 @@ public class DownloadMemberService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         Context context = getApplicationContext();
         ArrayList<MemberModel> memberList = NetworkUtils.downloadMemberList(context, URL_RUNLOOP_SITE);
-        if (memberList != null) {
+
+        boolean isSuccessfully = memberList != null;
+        if (isSuccessfully) {
             MembersSQLHelper membersSQLHelper = new MembersSQLHelper(context);
             membersSQLHelper.addMembers(memberList);
             Log.d(TAG, "Data download successfully");
@@ -47,7 +49,7 @@ public class DownloadMemberService extends IntentService {
         }
 
         Intent intentBroadcast = new Intent(DOWNLOAD_MEMBER);
-        intentBroadcast.putExtra(KEY_RESULT, memberList != null);
+        intentBroadcast.putExtra(KEY_RESULT, isSuccessfully);
         sendBroadcast(intentBroadcast);
     }
 }

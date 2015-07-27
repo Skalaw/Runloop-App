@@ -145,7 +145,7 @@ public class MemberListFragment extends Fragment {
                     if (mCurrentPosition != 0) {
                         mListView.setSelection(mCurrentPosition);
                     }
-                    if(mSelectedPosition != ListView.INVALID_POSITION) {
+                    if (mSelectedPosition != ListView.INVALID_POSITION) {
                         mListView.setItemChecked(mSelectedPosition, true);
                     }
                 }

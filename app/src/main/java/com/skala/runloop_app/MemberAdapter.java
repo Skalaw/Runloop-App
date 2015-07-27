@@ -70,7 +70,7 @@ public class MemberAdapter extends BaseAdapter {
         return convertView;
     }
 
-    private void loadAvatar(String stringURL, final MemberViewHolder holder, final int position) {
+    private void loadAvatar(String stringURL, MemberViewHolder holder, int position) {
         holder.photo.setImageResource(R.drawable.ic_image_grey_600_24dp); // mock-up
 
         ImageLoadAvatarTask imageLoadAvatarTask = new ImageLoadAvatarTask(holder, position, mResources);

@@ -10,8 +10,6 @@ import com.skala.runloop_app.models.MemberModel;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,24 +50,7 @@ public class NetworkUtils {
         ArrayList<MemberModel> memberList = null;
         try {
             Document doc = Jsoup.connect(stringUrl).get();
-            Elements staffListContainer = doc.getElementsByClass("staff-list-container");
-            Elements members = staffListContainer.get(0).getElementsByClass("figure");
-
-            memberList = new ArrayList<>();
-            int sizeMember = members.size();
-            for (int i = 0; i < sizeMember; i++) {
-                Element member = members.get(i);
-                String imageUrl = member.getElementsByClass("figure-image").get(0).select("img").get(0).absUrl("src");
-                String description = member.getElementsByClass("figure-caption-description").get(0).text();
-
-                Element title = member.getElementsByClass("figure-caption-title").get(0);
-                String fullName = title.select("strong").text();
-                String position = title.select("span").text();
-
-                MemberModel memberModel = new MemberModel(imageUrl, fullName, position, description);
-                memberList.add(memberModel);
-            }
-
+            memberList = Utility.parseMemberList(doc);
         } catch (IOException e) {
             e.printStackTrace();
         }
