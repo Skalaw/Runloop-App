@@ -62,7 +62,7 @@ public class TestDB extends AndroidTestCase {
         }
 
         cursor.close();
-
+        db.close();
     }
 
 }
